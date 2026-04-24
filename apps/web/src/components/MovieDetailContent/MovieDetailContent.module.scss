@@ -342,6 +342,7 @@
     font-size: rem(14);
     color: $color-text-secondary;
     margin: 0 0 rem(20);
+    line-height: 1.6;
   }
 
   &__link {
@@ -358,58 +359,21 @@
     font-size: rem(15);
     color: $color-text-secondary;
     margin: 0;
-  }
-}
-
-// Баннер подтверждения email
-.verify-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: rem(12);
-  padding: rem(16);
-  margin-bottom: rem(20);
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: rem(12);
-
-  &__icon {
-    flex-shrink: 0;
-    color: $color-primary;
-    margin-top: rem(2);
+    line-height: 1.6;
   }
 
-  &__content {
-    flex: 1;
+  &__empty-state {
+    padding: rem(18);
+    border: 1px dashed rgba($color-primary, 0.35);
+    border-radius: rem(16);
+    background: rgba($color-primary, 0.04);
   }
 
-  &__text {
-    font-size: rem(14);
-    font-weight: 500;
+  &__empty-title {
+    font-size: rem(17);
+    font-weight: 700;
     color: $color-text;
-    margin: 0 0 rem(10);
-  }
-
-  &__button {
-    font-size: rem(13);
-    font-weight: 600;
-    font-family: $font-family;
-    color: $color-primary;
-    background: none;
-    border: 1px solid $color-primary;
-    border-radius: rem(6);
-    padding: rem(6) rem(14);
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-
-    &:hover {
-      background: $color-primary;
-      color: white;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    margin: 0 0 rem(8);
   }
 }
 

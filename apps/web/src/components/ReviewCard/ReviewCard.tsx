@@ -24,7 +24,7 @@ interface CommentData {
 
 interface ReviewCardProps {
   reviewId: string;
-  userId: string;
+  userId: string | null;
   userName: string;
   rating: number;
   text: string;

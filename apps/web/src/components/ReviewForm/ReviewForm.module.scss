@@ -3,6 +3,28 @@
 .review-form {
   margin-bottom: rem(32);
 
+  &__guest-note {
+    padding: rem(14) rem(16);
+    margin-bottom: rem(16);
+    border: 1px solid rgba($color-primary, 0.16);
+    border-radius: rem(12);
+    background: rgba($color-primary, 0.04);
+  }
+
+  &__guest-title {
+    margin: 0 0 rem(6);
+    font-size: rem(15);
+    font-weight: 700;
+    color: $color-text;
+  }
+
+  &__guest-text {
+    margin: 0;
+    font-size: rem(14);
+    line-height: 1.6;
+    color: $color-text-secondary;
+  }
+
   &__rating-row {
     display: flex;
     align-items: center;
@@ -79,6 +101,26 @@
     }
   }
 
+  &__input {
+    width: 100%;
+    padding: rem(12) rem(16);
+    font-size: rem(14);
+    font-family: inherit;
+    border: 1px solid $color-gray-dark;
+    border-radius: rem(8);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: rem(12);
+
+    &::placeholder {
+      color: $color-text-secondary;
+    }
+
+    &:focus {
+      border-color: $color-primary;
+    }
+  }
+
   &__char-count {
     font-size: rem(12);
     color: $color-light-gray;
@@ -127,6 +169,31 @@
 
     &:hover {
       color: $color-text;
+    }
+  }
+
+  &__success-box {
+    margin-top: rem(14);
+    padding: rem(14) rem(16);
+    border-radius: rem(12);
+    background: #effaf3;
+    border: 1px solid #bbf7d0;
+  }
+
+  &__success-text {
+    margin: 0;
+    font-size: rem(14);
+    line-height: 1.6;
+    color: $color-text;
+
+    a {
+      color: $color-primary;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }

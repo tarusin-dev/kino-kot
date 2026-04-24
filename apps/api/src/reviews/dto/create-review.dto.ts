@@ -1,4 +1,14 @@
-import { IsNotEmpty, IsString, IsInt, Min, Max, MaxLength, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+  Matches,
+  IsOptional,
+  MinLength,
+} from 'class-validator';
 
 export class CreateReviewDto {
   @IsString()
@@ -17,4 +27,16 @@ export class CreateReviewDto {
   @IsNotEmpty()
   @MaxLength(2000)
   text: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(40)
+  guestName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(10)
+  @MaxLength(120)
+  guestToken?: string;
 }

@@ -42,8 +42,19 @@ export class AuthService {
       emailVerificationToken,
     );
 
+    const id = user._id.toString();
+    const tokens = this.generateTokens(id);
+
     return {
+      user: {
+        id,
+        name: user.name,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        role: user.role,
+      },
       message: 'Проверьте вашу почту для подтверждения email',
+      ...tokens,
     };
   }
 

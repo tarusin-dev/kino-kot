@@ -3,8 +3,14 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: { createdAt: true, updatedAt: false } })
 export class Review extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  userId?: Types.ObjectId;
+
+  @Prop()
+  guestToken?: string;
+
+  @Prop({ default: false })
+  isGuest: boolean;
 
   @Prop({ type: String, required: true })
   movieId: string;
@@ -29,4 +35,17 @@ export class Review extends Document {
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
 
-ReviewSchema.index({ userId: 1, movieId: 1 }, { unique: true });
+ReviewSchema.index(
+  { userId: 1, movieId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { userId: { $exists: true } },
+  },
+);
+ReviewSchema.index(
+  { guestToken: 1, movieId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { guestToken: { $exists: true } },
+  },
+);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -12,10 +12,18 @@ import styles from './page.module.scss';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
+  const redirectParam = searchParams.get('redirect');
+  const redirectPath =
+    redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+  const registerHref =
+    redirectPath === '/'
+      ? '/register'
+      : `/register?redirect=${encodeURIComponent(redirectPath)}`;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -38,7 +46,7 @@ export default function LoginPage() {
 
     try {
       await login(form.email, form.password);
-      router.push('/');
+      router.push(redirectPath);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : 'Неверный email или пароль',
@@ -55,7 +63,7 @@ export default function LoginPage() {
           submitText="Войти"
           footerText="Нет аккаунта?"
           footerLinkText="Зарегистрироваться"
-          footerLinkHref="/register"
+          footerLinkHref={registerHref}
           error={serverError}
           onSubmit={handleSubmit}
         >

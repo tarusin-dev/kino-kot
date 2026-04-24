@@ -24,9 +24,13 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, VerifiedEmailGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   create(@Req() req: any, @Body() dto: CreateReviewDto) {
-    return this.reviewsService.create(req.user.id, req.user.name, dto);
+    if (req.user) {
+      return this.reviewsService.create(req.user.id, req.user.name, dto);
+    }
+
+    return this.reviewsService.createGuest(dto);
   }
 
   @Post('reactions')

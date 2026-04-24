@@ -8,13 +8,14 @@ import ReviewForm from '@/components/ReviewForm/ReviewForm';
 import ReviewCard from '@/components/ReviewCard/ReviewCard';
 import MovieSlider from '@/components/MovieSlider/MovieSlider';
 import type { Movie, MovieDetail } from '@/types/movie';
+import { getMoviePath } from '@/utils/getMoviePath';
 import styles from './MovieDetailContent.module.scss';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface ReviewData {
   _id: string;
-  userId: string;
+  userId: string | null;
   userName: string;
   rating: number;
   text: string;
@@ -313,44 +314,6 @@ export default function MovieDetailContent({ movie }: MovieDetailContentProps) {
 
 /* ---------- Вкладка: Отзывы ---------- */
 
-function VerifyEmailBanner() {
-  const { user, resendVerification } = useAuth();
-  const [sending, setSending] = useState(false);
-
-  const handleResend = async () => {
-    if (!user) return;
-    setSending(true);
-    try {
-      await resendVerification(user.email);
-    } catch {
-      // toast handled in context
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div className={styles['verify-banner']}>
-      <svg className={styles['verify-banner__icon']} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="4" width="20" height="16" rx="2" />
-        <path d="M22 4L12 13L2 4" />
-      </svg>
-      <div className={styles['verify-banner__content']}>
-        <p className={styles['verify-banner__text']}>
-          Подтвердите email, чтобы оставлять отзывы
-        </p>
-        <button
-          className={styles['verify-banner__button']}
-          onClick={handleResend}
-          disabled={sending}
-        >
-          {sending ? 'Отправляем...' : 'Отправить письмо повторно'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function ReviewsTab({
   user,
   loading,
@@ -370,33 +333,48 @@ function ReviewsTab({
 }) {
   if (loading) return null;
 
+  const redirectPath = `${getMoviePath(movieId)}#reviews`;
+  const loginHref = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+  const registerHref = `/register?redirect=${encodeURIComponent(redirectPath)}`;
+  const emptyTitle = user
+    ? 'Ваш отзыв может стать первым'
+    : 'Отзывов пока нет';
+  const emptyText = user
+    ? 'Поделитесь впечатлением о фильме и помогите следующим зрителям определиться.'
+    : 'Станьте первым автором на этой странице и помогите другим понять, стоит ли смотреть это кино.';
+
   return (
     <div className={styles['reviews-tab']}>
-      {user ? (
-        !userHasReview && (
-          user.isEmailVerified ? (
-            <ReviewForm
-              movieId={movieId}
-              user={user}
-              onReviewSubmitted={onReviewSubmitted}
-            />
-          ) : (
-            <VerifyEmailBanner />
-          )
-        )
-      ) : (
+      {!user && (
         <p className={styles['reviews-tab__auth-message']}>
-          Чтобы оставить отзыв, вам нужно{' '}
-          <Link href="/login" className={styles['reviews-tab__link']}>
+          Аккаунт не обязателен: отзыв можно отправить как гость. Если хотите
+          позже ставить лайки и писать комментарии, можно{' '}
+          <Link href={loginHref} className={styles['reviews-tab__link']}>
             войти
+          </Link>{' '}
+          или{' '}
+          <Link href={registerHref} className={styles['reviews-tab__link']}>
+            зарегистрироваться
           </Link>
+          .
         </p>
+      )}
+
+      {!userHasReview && (
+        <ReviewForm
+          movieId={movieId}
+          user={user}
+          onReviewSubmitted={onReviewSubmitted}
+        />
       )}
 
       {reviewsLoading ? (
         <p className={styles['reviews-tab__empty']}>Загрузка отзывов...</p>
       ) : reviews.length === 0 ? (
-        <p className={styles['reviews-tab__empty']}>Отзывов пока нет</p>
+        <div className={styles['reviews-tab__empty-state']}>
+          <p className={styles['reviews-tab__empty-title']}>{emptyTitle}</p>
+          <p className={styles['reviews-tab__empty']}>{emptyText}</p>
+        </div>
       ) : (
         <div className={styles['reviews-tab__list']}>
           {reviews.map((review) => (

@@ -48,6 +48,10 @@ export default function ReviewsMarquee({ reviews, noContainer }: ReviewsMarqueeP
   };
 
   useEffect(() => {
+    if (reviews.length <= 1) {
+      return undefined;
+    }
+
     intervalRef.current = setInterval(() => {
       if (!isPausedRef.current) scrollNext();
     }, 10000);
@@ -55,37 +59,39 @@ export default function ReviewsMarquee({ reviews, noContainer }: ReviewsMarqueeP
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [scrollNext]);
+  }, [reviews.length, scrollNext]);
 
   const handleMouseEnter = () => { isPausedRef.current = true; };
   const handleMouseLeave = () => { isPausedRef.current = false; };
 
-  if (reviews.length < 4) return null;
+  if (reviews.length === 0) return null;
 
   const content = (
     <>
       <div className={styles['reviews-marquee__header']}>
         <h2 className={styles['reviews-marquee__title']}>Последние отзывы</h2>
-        <div className={styles['reviews-marquee__controls']}>
-          <button
-            className={`${styles['reviews-marquee__arrow']} ${styles['reviews-marquee__arrow--left']}`}
-            onClick={() => scroll('left')}
-            aria-label="Назад"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button
-            className={`${styles['reviews-marquee__arrow']} ${styles['reviews-marquee__arrow--right']}`}
-            onClick={() => scroll('right')}
-            aria-label="Вперёд"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
+        {reviews.length > 1 && (
+          <div className={styles['reviews-marquee__controls']}>
+            <button
+              className={`${styles['reviews-marquee__arrow']} ${styles['reviews-marquee__arrow--left']}`}
+              onClick={() => scroll('left')}
+              aria-label="Назад"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              className={`${styles['reviews-marquee__arrow']} ${styles['reviews-marquee__arrow--right']}`}
+              onClick={() => scroll('right')}
+              aria-label="Вперёд"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
       <div
         className={styles['reviews-marquee__track']}

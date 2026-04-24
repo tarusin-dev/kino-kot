@@ -16,6 +16,11 @@ import type { LatestReview } from '@/types/review';
 
 const API_URL = process.env.API_URL || 'http://localhost:3001/api';
 
+interface ReviewStats {
+  totalReviews: number;
+  totalAuthors: number;
+}
+
 async function fetchHomeData<T>(url: string, label: string): Promise<T | null> {
   try {
     const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -93,17 +98,26 @@ async function getRatings(movieIds: string[]): Promise<Record<string, number>> {
   }
 }
 
+async function getReviewStats(): Promise<ReviewStats | null> {
+  return fetchHomeData<ReviewStats>(`${API_URL}/reviews/stats`, 'review stats');
+}
+
 function mergeRatings(movies: Movie[], ratings: Record<string, number>): Movie[] {
   return movies.map((m) => ({ ...m, kinoKotRating: ratings[m._id] }));
 }
 
+function formatStat(value: number) {
+  return value.toLocaleString('ru-RU');
+}
+
 export default async function Home() {
-  const [popular, topRated, popularSeries, upcoming, latestReviews] = await Promise.all([
+  const [popular, topRated, popularSeries, upcoming, latestReviews, reviewStats] = await Promise.all([
     getPopularMovies(),
     getTopRatedMovies(),
     getPopularSeries(),
     getUpcomingMovies(),
     getLatestReviews(),
+    getReviewStats(),
   ]);
 
   const allIds = [...popular, ...topRated, ...popularSeries, ...upcoming].map((m) => m._id);
@@ -141,7 +155,33 @@ export default async function Home() {
             )}
             <SearchBlock />
             <HeroBanner />
-            {latestReviews.length >= 4 && <ReviewsMarquee reviews={latestReviews} noContainer />}
+            {reviewStats && (
+              <section className={styles['home__trust']}>
+                <article className={styles['home__trust-card']}>
+                  <strong className={styles['home__trust-value']}>
+                    {formatStat(reviewStats.totalReviews)}
+                  </strong>
+                  <span className={styles['home__trust-label']}>
+                    опубликованных отзывов
+                  </span>
+                </article>
+                <article className={styles['home__trust-card']}>
+                  <strong className={styles['home__trust-value']}>
+                    {formatStat(reviewStats.totalAuthors)}
+                  </strong>
+                  <span className={styles['home__trust-label']}>
+                    авторов уже пишут на КиноКоте
+                  </span>
+                </article>
+                <article className={styles['home__trust-card']}>
+                  <strong className={styles['home__trust-value']}>24/7</strong>
+                  <span className={styles['home__trust-label']}>
+                    автомодерация и ручная проверка жалоб
+                  </span>
+                </article>
+              </section>
+            )}
+            {latestReviews.length > 0 && <ReviewsMarquee reviews={latestReviews} noContainer />}
             <HowItWorks />
             <WhyKinoKot />
             <MovieSlider

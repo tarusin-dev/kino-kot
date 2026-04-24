@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<{ needsVerification: boolean }>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (data: { name?: string }) => Promise<void>;
   resendVerification: (email: string) => Promise<void>;
@@ -72,8 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(data.message || 'Ошибка регистрации');
     }
 
-    toast.success('Проверьте вашу почту для подтверждения');
-    return { needsVerification: true };
+    const data = await res.json();
+    if (data.user) {
+      setUser(data.user);
+    }
+    toast.success('Аккаунт создан. Ссылку для подтверждения email уже отправили.');
   };
 
   const logout = async () => {

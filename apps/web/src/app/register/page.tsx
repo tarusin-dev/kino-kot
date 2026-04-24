@@ -1,21 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import AuthForm from '../../components/AuthForm/AuthForm';
 import FormInput from '../../components/FormInput/FormInput';
 import { useAuth } from '../../context/AuthContext';
-import styles from './page.module.scss';
 
 export default function RegisterPage() {
-  const { register, resendVerification } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { register } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
-  const [resending, setResending] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -34,69 +33,27 @@ export default function RegisterPage() {
     setServerError('');
   };
 
+  const redirectParam = searchParams.get('redirect');
+  const redirectPath =
+    redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+  const loginHref =
+    redirectPath === '/'
+      ? '/login'
+      : `/login?redirect=${encodeURIComponent(redirectPath)}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     try {
       await register(form.name, form.email, form.password);
-      setEmailSent(true);
+      router.push(redirectPath);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : 'Ошибка регистрации',
       );
     }
   };
-
-  const handleResend = async () => {
-    setResending(true);
-    try {
-      await resendVerification(form.email);
-    } catch {
-      // toast handled in context
-    } finally {
-      setResending(false);
-    }
-  };
-
-  if (emailSent) {
-    return (
-      <>
-        <Header />
-        <main>
-          <div className={styles['verify-prompt']}>
-            <div className={styles['verify-prompt__card']}>
-              <div className={styles['verify-prompt__icon']}>
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#FF3B2F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="M22 4L12 13L2 4" />
-                </svg>
-              </div>
-              <h2 className={styles['verify-prompt__title']}>Проверьте вашу почту</h2>
-              <p className={styles['verify-prompt__text']}>
-                Мы отправили ссылку для подтверждения на{' '}
-                <strong>{form.email}</strong>
-              </p>
-              <button
-                className={styles['verify-prompt__resend']}
-                onClick={handleResend}
-                disabled={resending}
-              >
-                {resending ? 'Отправляем...' : 'Отправить повторно'}
-              </button>
-              <p className={styles['verify-prompt__footer']}>
-                Уже подтвердили?{' '}
-                <Link href="/login" className={styles['verify-prompt__link']}>
-                  Войти
-                </Link>
-              </p>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
 
   return (
     <>
@@ -107,7 +64,7 @@ export default function RegisterPage() {
           submitText="Зарегистрироваться"
           footerText="Уже есть аккаунт?"
           footerLinkText="Войти"
-          footerLinkHref="/login"
+          footerLinkHref={loginHref}
           error={serverError}
           onSubmit={handleSubmit}
         >

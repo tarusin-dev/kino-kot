@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -61,12 +62,50 @@ export class ReviewsService {
     });
   }
 
+  async createGuest(dto: CreateReviewDto): Promise<Review> {
+    const guestName = dto.guestName?.trim();
+    const guestToken = dto.guestToken?.trim();
+
+    if (!guestName) {
+      throw new BadRequestException('Укажите имя для публикации отзыва');
+    }
+
+    if (!guestToken) {
+      throw new BadRequestException('Не удалось создать гостевую сессию');
+    }
+
+    const existing = await this.reviewModel.findOne({
+      guestToken,
+      movieId: dto.movieId,
+    });
+
+    if (existing) {
+      throw new ConflictException('Вы уже оставили гостевой отзыв на этот фильм');
+    }
+
+    await this.moviesService.ensureMovieInDb(dto.movieId);
+
+    const modResult = this.moderationService.moderateText(dto.text);
+
+    return this.reviewModel.create({
+      guestToken,
+      isGuest: true,
+      movieId: dto.movieId,
+      rating: dto.rating,
+      text: dto.text,
+      userName: guestName,
+      status: 'pending',
+      moderationReason:
+        modResult.reason || 'Гостевой отзыв отправлен на ручную модерацию',
+    });
+  }
+
   async toggleReaction(userId: string, dto: ToggleReactionDto) {
     const userOid = new Types.ObjectId(userId);
     const reviewOid = new Types.ObjectId(dto.reviewId);
 
     const review = await this.reviewModel.findById(reviewOid);
-    if (review && review.userId.toString() === userId) {
+    if (review?.userId && review.userId.toString() === userId) {
       throw new ForbiddenException(
         'Нельзя ставить реакции на собственные отзывы',
       );
@@ -167,16 +206,25 @@ export class ReviewsService {
   }
 
   async getPublicStats() {
-    const [totalReviews, totalAuthors] = await Promise.all([
+    const [totalReviews, userAuthors, guestAuthors] = await Promise.all([
       this.reviewModel.countDocuments({ status: 'approved' }),
-      this.reviewModel.distinct('userId', { status: 'approved' }).then((ids) => ids.length),
+      this.reviewModel
+        .distinct('userId', { status: 'approved', userId: { $exists: true } })
+        .then((ids) => ids.length),
+      this.reviewModel
+        .distinct('guestToken', {
+          status: 'approved',
+          guestToken: { $exists: true },
+        })
+        .then((tokens) => tokens.length),
     ]);
+    const totalAuthors = userAuthors + guestAuthors;
     return { totalReviews, totalAuthors };
   }
 
   async getAverageRatings(movieIds: string[]): Promise<Record<string, number>> {
     const result = await this.reviewModel.aggregate([
-      { $match: { movieId: { $in: movieIds }, status: { $ne: 'rejected' } } },
+      { $match: { movieId: { $in: movieIds }, status: 'approved' } },
       { $group: { _id: '$movieId', avg: { $avg: '$rating' } } },
     ]);
 

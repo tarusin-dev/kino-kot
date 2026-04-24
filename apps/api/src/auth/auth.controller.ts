@@ -38,8 +38,14 @@ export class AuthController {
 
   @Post('register')
   @Throttle({ short: { ttl: 60000, limit: 3 } })
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    const { user, message, accessToken, refreshToken } =
+      await this.authService.register(dto);
+    setTokenCookies(res, accessToken, refreshToken);
+    return { user, message };
   }
 
   @Get('verify-email')
