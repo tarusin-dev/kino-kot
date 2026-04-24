@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header/Header';
@@ -11,6 +11,20 @@ import { useAuth } from '../../context/AuthContext';
 import styles from './page.module.scss';
 
 export default function LoginPage() {
+  return (
+    <>
+      <Header />
+      <main>
+        <Suspense fallback={null}>
+          <LoginPageContent />
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -55,41 +69,35 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <Header />
-      <main>
-        <AuthForm
-          title="Вход"
-          submitText="Войти"
-          footerText="Нет аккаунта?"
-          footerLinkText="Зарегистрироваться"
-          footerLinkHref={registerHref}
-          error={serverError}
-          onSubmit={handleSubmit}
-        >
-          <FormInput
-            name="email"
-            placeholder="Email"
-            icon="/icons/mail.svg"
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-          />
-          <FormInput
-            type="password"
-            name="password"
-            placeholder="Пароль"
-            icon="/icons/eye-show.svg"
-            value={form.password}
-            onChange={handleChange}
-            error={errors.password}
-          />
-          <Link href="/forgot-password" className={styles['login__forgot-link']}>
-            Забыли пароль?
-          </Link>
-        </AuthForm>
-      </main>
-      <Footer />
-    </>
+    <AuthForm
+      title="Вход"
+      submitText="Войти"
+      footerText="Нет аккаунта?"
+      footerLinkText="Зарегистрироваться"
+      footerLinkHref={registerHref}
+      error={serverError}
+      onSubmit={handleSubmit}
+    >
+      <FormInput
+        name="email"
+        placeholder="Email"
+        icon="/icons/mail.svg"
+        value={form.email}
+        onChange={handleChange}
+        error={errors.email}
+      />
+      <FormInput
+        type="password"
+        name="password"
+        placeholder="Пароль"
+        icon="/icons/eye-show.svg"
+        value={form.password}
+        onChange={handleChange}
+        error={errors.password}
+      />
+      <Link href="/forgot-password" className={styles['login__forgot-link']}>
+        Забыли пароль?
+      </Link>
+    </AuthForm>
   );
 }

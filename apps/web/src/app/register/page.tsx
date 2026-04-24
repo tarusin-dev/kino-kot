@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -9,6 +9,20 @@ import FormInput from '../../components/FormInput/FormInput';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterPage() {
+  return (
+    <>
+      <Header />
+      <main>
+        <Suspense fallback={null}>
+          <RegisterPageContent />
+        </Suspense>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register } = useAuth();
@@ -56,46 +70,40 @@ export default function RegisterPage() {
   };
 
   return (
-    <>
-      <Header />
-      <main>
-        <AuthForm
-          title="Регистрация"
-          submitText="Зарегистрироваться"
-          footerText="Уже есть аккаунт?"
-          footerLinkText="Войти"
-          footerLinkHref={loginHref}
-          error={serverError}
-          onSubmit={handleSubmit}
-        >
-          <FormInput
-            name="name"
-            placeholder="Имя"
-            icon="/icons/user.svg"
-            value={form.name}
-            onChange={handleChange}
-            error={errors.name}
-          />
-          <FormInput
-            name="email"
-            placeholder="Email"
-            icon="/icons/mail.svg"
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-          />
-          <FormInput
-            type="password"
-            name="password"
-            placeholder="Пароль"
-            icon="/icons/eye-show.svg"
-            value={form.password}
-            onChange={handleChange}
-            error={errors.password}
-          />
-        </AuthForm>
-      </main>
-      <Footer />
-    </>
+    <AuthForm
+      title="Регистрация"
+      submitText="Зарегистрироваться"
+      footerText="Уже есть аккаунт?"
+      footerLinkText="Войти"
+      footerLinkHref={loginHref}
+      error={serverError}
+      onSubmit={handleSubmit}
+    >
+      <FormInput
+        name="name"
+        placeholder="Имя"
+        icon="/icons/user.svg"
+        value={form.name}
+        onChange={handleChange}
+        error={errors.name}
+      />
+      <FormInput
+        name="email"
+        placeholder="Email"
+        icon="/icons/mail.svg"
+        value={form.email}
+        onChange={handleChange}
+        error={errors.email}
+      />
+      <FormInput
+        type="password"
+        name="password"
+        placeholder="Пароль"
+        icon="/icons/eye-show.svg"
+        value={form.password}
+        onChange={handleChange}
+        error={errors.password}
+      />
+    </AuthForm>
   );
 }
