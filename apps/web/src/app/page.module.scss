@@ -10,42 +10,4 @@
   &__wrap {
     @include container;
   }
-
-  &__trust {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: rem(12);
-    margin-top: rem(24);
-
-    @media (min-width: $breakpoint-sm) {
-      grid-template-columns: repeat(3, 1fr);
-      margin-top: rem(32);
-    }
-  }
-
-  &__trust-card {
-    display: flex;
-    flex-direction: column;
-    gap: rem(6);
-    padding: rem(18);
-    border: 1px solid rgba($color-primary, 0.12);
-    border-radius: rem(18);
-    background:
-      linear-gradient(135deg, rgba($color-primary, 0.08), rgba(255, 255, 255, 0.98)),
-      $color-bg;
-    box-shadow: 0 rem(12) rem(28) rgba(15, 23, 42, 0.04);
-  }
-
-  &__trust-value {
-    font-size: rem(28);
-    line-height: 1;
-    font-weight: 700;
-    color: $color-text;
-  }
-
-  &__trust-label {
-    font-size: rem(14);
-    line-height: 1.5;
-    color: $color-text-secondary;
-  }
 }
