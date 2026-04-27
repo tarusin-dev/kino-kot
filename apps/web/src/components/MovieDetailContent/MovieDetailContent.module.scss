@@ -75,7 +75,10 @@
 
   &__trailer {
     flex: 1;
+    min-width: 0;
     position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
     border-radius: rem(12);
     overflow: hidden;
     background: #000;
@@ -83,6 +86,13 @@
 
     @media (min-width: $breakpoint-md) {
       display: block;
+      width: auto;
+      aspect-ratio: auto;
+      height: rem(330);
+    }
+
+    @media (min-width: $breakpoint-lg) {
+      height: rem(420);
     }
 
     iframe {
@@ -146,10 +156,23 @@
 
   &__backdrop {
     flex: 1;
+    min-width: 0;
     position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
     border-radius: rem(12);
     overflow: hidden;
     background: $color-gray;
+
+    @media (min-width: $breakpoint-md) {
+      width: auto;
+      aspect-ratio: auto;
+      height: rem(330);
+    }
+
+    @media (min-width: $breakpoint-lg) {
+      height: rem(420);
+    }
 
     img {
       object-fit: cover;
