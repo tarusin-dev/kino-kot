@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header/Header';
@@ -9,6 +9,8 @@ import AuthForm from '../../components/AuthForm/AuthForm';
 import FormInput from '../../components/FormInput/FormInput';
 import { useAuth } from '../../context/AuthContext';
 import styles from './page.module.scss';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function LoginPage() {
   return (
@@ -32,12 +34,23 @@ function LoginPageContent() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const redirectParam = searchParams.get('redirect');
+  const authError = searchParams.get('authError');
   const redirectPath =
     redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
   const registerHref =
     redirectPath === '/'
       ? '/register'
       : `/register?redirect=${encodeURIComponent(redirectPath)}`;
+  const googleHref = `${API_URL}/auth/google?${new URLSearchParams({
+    redirect: redirectPath,
+    source: '/login',
+  }).toString()}`;
+
+  useEffect(() => {
+    if (authError === 'google') {
+      setServerError('Не удалось выполнить вход через Google. Попробуйте ещё раз.');
+    }
+  }, [authError]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -75,6 +88,7 @@ function LoginPageContent() {
       footerText="Нет аккаунта?"
       footerLinkText="Зарегистрироваться"
       footerLinkHref={registerHref}
+      googleHref={googleHref}
       error={serverError}
       onSubmit={handleSubmit}
     >

@@ -22,6 +22,10 @@ export class UsersService {
     return this.userModel.findOne({ email: email.toLowerCase() });
   }
 
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.userModel.findOne({ googleId });
+  }
+
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
@@ -30,6 +34,8 @@ export class UsersService {
     name: string;
     email: string;
     password: string;
+    googleId?: string;
+    isEmailVerified?: boolean;
     emailVerificationToken?: string;
   }): Promise<User> {
     return this.userModel.create(data);

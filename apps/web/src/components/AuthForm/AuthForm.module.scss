@@ -48,6 +48,54 @@
     gap: rem(16);
   }
 
+  &__google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: rem(52);
+    padding: rem(14);
+    border: rem(1) solid $color-gray-dark;
+    border-radius: rem(8);
+    background: $color-bg;
+    color: $color-text;
+    font-size: rem(15);
+    font-weight: 600;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      border-color: $color-primary;
+      box-shadow: 0 rem(4) rem(16) rgba(255, 59, 47, 0.12);
+    }
+  }
+
+  &__divider {
+    position: relative;
+    margin: rem(20) 0;
+    text-align: center;
+
+    span {
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      padding: 0 rem(12);
+      background: $color-bg;
+      color: $color-text-secondary;
+      font-size: rem(13);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: rem(1);
+      background: $color-gray-dark;
+      transform: translateY(-50%);
+    }
+  }
+
   &__submit {
     @include gradient-button;
     width: 100%;

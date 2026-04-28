@@ -2,16 +2,27 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
+import axios from 'axios';
 import bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service.js';
 import { EmailService } from '../email/email.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+import { User } from '../users/user.schema.js';
+
+interface GoogleUserInfo {
+  sub: string;
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -19,6 +30,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -46,13 +58,7 @@ export class AuthService {
     const tokens = this.generateTokens(id);
 
     return {
-      user: {
-        id,
-        name: user.name,
-        email: user.email,
-        isEmailVerified: user.isEmailVerified,
-        role: user.role,
-      },
+      user: this.serializeUser(user),
       message: 'Проверьте вашу почту для подтверждения email',
       ...tokens,
     };
@@ -134,15 +140,83 @@ export class AuthService {
     const id = user._id.toString();
     const tokens = this.generateTokens(id);
     return {
-      user: {
-        id,
-        name: user.name,
-        email: user.email,
-        isEmailVerified: user.isEmailVerified,
-        role: user.role,
-      },
+      user: this.serializeUser(user),
       ...tokens,
     };
+  }
+
+  getGoogleAuthorizationUrl(state: string) {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI');
+
+    if (!clientId || !redirectUri) {
+      throw new InternalServerErrorException(
+        'Google авторизация не настроена',
+      );
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'online',
+      prompt: 'select_account',
+      state,
+    });
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  }
+
+  async loginWithGoogle(code: string) {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI');
+
+    if (!clientId || !clientSecret || !redirectUri) {
+      throw new InternalServerErrorException(
+        'Google авторизация не настроена',
+      );
+    }
+
+    try {
+      const tokenResponse = await axios.post<{
+        access_token: string;
+      }>(
+        'https://oauth2.googleapis.com/token',
+        new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }).toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const userInfoResponse = await axios.get<GoogleUserInfo>(
+        'https://openidconnect.googleapis.com/v1/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.data.access_token}`,
+          },
+        },
+      );
+
+      const user = await this.findOrCreateGoogleUser(userInfoResponse.data);
+      const tokens = this.generateTokens(user._id.toString());
+
+      return {
+        user: this.serializeUser(user),
+        ...tokens,
+      };
+    } catch {
+      throw new UnauthorizedException('Не удалось выполнить вход через Google');
+    }
   }
 
   generateTokens(userId: string) {
@@ -175,6 +249,72 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
+    return this.serializeUser(user);
+  }
+
+  buildFrontendUrl(path: string, params?: Record<string, string>) {
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const url = new URL(path, frontendUrl);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        url.searchParams.set(key, value);
+      }
+    }
+
+    return url.toString();
+  }
+
+  private async findOrCreateGoogleUser(profile: GoogleUserInfo) {
+    if (!profile.sub || !profile.email || !profile.email_verified) {
+      throw new UnauthorizedException(
+        'Google не вернул подтверждённый email',
+      );
+    }
+
+    const email = profile.email.toLowerCase();
+    const displayName = profile.name?.trim() || email.split('@')[0] || 'User';
+
+    const existingGoogleUser = await this.usersService.findByGoogleId(
+      profile.sub,
+    );
+    if (existingGoogleUser) {
+      return existingGoogleUser;
+    }
+
+    const existingEmailUser = await this.usersService.findByEmail(email);
+    if (existingEmailUser) {
+      let hasChanges = false;
+
+      if (existingEmailUser.googleId !== profile.sub) {
+        existingEmailUser.googleId = profile.sub;
+        hasChanges = true;
+      }
+
+      if (!existingEmailUser.isEmailVerified) {
+        existingEmailUser.isEmailVerified = true;
+        existingEmailUser.emailVerificationToken = undefined as any;
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        await existingEmailUser.save();
+      }
+
+      return existingEmailUser;
+    }
+
+    return this.usersService.create({
+      name: displayName,
+      email,
+      password: await bcrypt.hash(randomUUID(), 10),
+      googleId: profile.sub,
+      isEmailVerified: true,
+    });
+  }
+
+  private serializeUser(user: User) {
     return {
       id: user._id.toString(),
       name: user.name,

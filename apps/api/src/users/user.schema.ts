@@ -12,6 +12,9 @@ export class User extends Document {
   @Prop({ required: true })
   password: string;
 
+  @Prop({ unique: true, sparse: true })
+  googleId?: string;
+
   @Prop({ default: 'user', enum: ['user', 'admin'] })
   role: string;
 
