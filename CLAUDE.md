@@ -112,6 +112,8 @@ kino-kot/
 - **AdminReportCard** — client-компонент, карточка жалобы: бейдж типа (отзыв/комментарий), причина, описание, превью контента с автором, кнопки "Отклонить жалобу"/"Удалить контент"
 - **Pagination** — компонент пагинации (currentPage, totalPages, onPageChange)
 - **Footer** — логотип, копирайт, навигация
+- **CookieConsent** — client-компонент баннера согласия: показывает необходимые cookie как обязательные, даёт принять все, отклонить аналитику или открыть настройки с тумблером Google Analytics; выбор сохраняется в `localStorage` через `apps/web/src/lib/cookie-consent.ts`
+- **GoogleAnalytics** — client-компонент подключения GA4: загружает `gtag` только при сохранённом согласии `accepted`, слушает событие смены cookie-consent и отправляет page_view при клиентской навигации
 
 ## Данные теста (apps/web/src/data/)
 
@@ -155,6 +157,7 @@ kino-kot/
 - Шрифт Montserrat Alternates (weights: 400, 500, 600, 700; latin + cyrillic) через `next/font/google`
 - Ассеты: `public/images/logo.svg`, `public/images/main-banner.webp`
 - npm install требует `--cache /tmp/npm-cache` из-за проблем с правами в дефолтном кеше
+- Google Analytics подключается только при `NEXT_PUBLIC_GA_ID` и согласии пользователя на аналитику; состояние согласия хранится в `localStorage` (`kinokot_cookie_consent`)
 - **SEO**:
   - базовые helper'ы лежат в `apps/web/src/lib/seo.ts` и `apps/web/src/lib/movie-page.ts`
   - глобальные metadata, Open Graph, Twitter Card и JSON-LD сайта задаются в `apps/web/src/app/layout.tsx`

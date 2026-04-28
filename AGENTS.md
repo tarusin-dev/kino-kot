@@ -113,6 +113,8 @@ RESEND_API_KEY=...
 - Для detail/listing-страниц многие данные приходят server-side через `API_URL`
 - `ReviewForm` на detail-странице работает и для гостя, и для авторизованного пользователя
 - Для guest-review фронтенд хранит локальный `guestToken` в браузере и использует его для ограничения повторной отправки отзыва на тот же фильм
+- `CookieConsent` хранит выбор пользователя в `localStorage` (`kinokot_cookie_consent`): `accepted` включает Google Analytics, `rejected` оставляет только необходимые cookie/локальные технические данные
+- `GoogleAnalytics` должен загружать `gtag` только после согласия на аналитику и при наличии `NEXT_PUBLIC_GA_ID`
 
 ## Deployment Notes
 
