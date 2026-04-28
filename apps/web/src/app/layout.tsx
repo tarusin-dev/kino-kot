@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Montserrat_Alternates } from 'next/font/google';
 import { Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
+import CookieConsent from '@/components/CookieConsent/CookieConsent';
 import GoogleAnalytics from '@/components/GoogleAnalytics/GoogleAnalytics';
 import { AuthProvider } from '../context/AuthContext';
 import {
@@ -88,6 +89,7 @@ export default function RootLayout({
         />
         <AuthProvider>
           {children}
+          <CookieConsent />
           <Toaster position="top-right" />
         </AuthProvider>
       </body>

@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
+import {
+  COOKIE_CONSENT_EVENT,
+  getCookieConsent,
+  type CookieConsentValue,
+} from '@/lib/cookie-consent';
 
 declare global {
   interface Window {
@@ -16,9 +21,47 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 export default function GoogleAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [hasAnalyticsConsent, setHasAnalyticsConsent] = useState(false);
+  const [isScriptReady, setIsScriptReady] = useState(false);
 
   useEffect(() => {
-    if (!GA_ID || typeof window.gtag !== 'function') {
+    const syncConsent = () => {
+      const isAccepted = getCookieConsent() === 'accepted';
+
+      setHasAnalyticsConsent(isAccepted);
+
+      if (!isAccepted) {
+        setIsScriptReady(false);
+
+        if (typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            analytics_storage: 'denied',
+          });
+        }
+      }
+    };
+
+    const handleConsentChange = (event: Event) => {
+      const value = (event as CustomEvent<{ value: CookieConsentValue }>).detail?.value;
+      setHasAnalyticsConsent(value === 'accepted');
+
+      if (value !== 'accepted') {
+        setIsScriptReady(false);
+      }
+    };
+
+    syncConsent();
+    window.addEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
+    window.addEventListener('storage', syncConsent);
+
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
+      window.removeEventListener('storage', syncConsent);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!GA_ID || !hasAnalyticsConsent || !isScriptReady || typeof window.gtag !== 'function') {
       return;
     }
 
@@ -30,9 +73,9 @@ export default function GoogleAnalytics() {
       page_location: window.location.href,
       page_path: pagePath,
     });
-  }, [pathname, searchParams]);
+  }, [hasAnalyticsConsent, isScriptReady, pathname, searchParams]);
 
-  if (!GA_ID) {
+  if (!GA_ID || !hasAnalyticsConsent) {
     return null;
   }
 
@@ -42,11 +85,18 @@ export default function GoogleAnalytics() {
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script
+        id="google-analytics"
+        strategy="afterInteractive"
+        onReady={() => setIsScriptReady(true)}
+      >
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           window.gtag = gtag;
+          gtag('consent', 'default', {
+            analytics_storage: 'granted'
+          });
           gtag('js', new Date());
           gtag('config', '${GA_ID}', { send_page_view: false });
         `}

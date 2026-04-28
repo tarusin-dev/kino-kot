@@ -1,0 +1,216 @@
+@use '../../styles/variables' as *;
+
+.cookie-consent {
+  position: fixed;
+  z-index: 1000;
+  right: rem(10);
+  bottom: rem(10);
+  left: rem(10);
+  color: $color-text;
+  pointer-events: none;
+
+  @media (min-width: $breakpoint-md) {
+    right: rem(20);
+    bottom: rem(20);
+    left: auto;
+    width: min(rem(650), calc(100vw - rem(40)));
+  }
+
+  &__content {
+    display: grid;
+    gap: rem(14);
+    padding: rem(16);
+    border: rem(1) solid rgba($color-text, 0.1);
+    border-radius: rem(8);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 rem(16) rem(38) rgba(16, 32, 49, 0.16);
+    pointer-events: auto;
+    backdrop-filter: blur(rem(10));
+
+    @media (min-width: $breakpoint-md) {
+      padding: rem(18);
+    }
+  }
+
+  &__text {
+    display: grid;
+    gap: rem(6);
+  }
+
+  &__eyebrow {
+    margin: 0;
+    color: $color-primary;
+    font-size: rem(12);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: rem(17);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  &__description {
+    margin: 0;
+    font-size: rem(14);
+    line-height: 1.55;
+    color: $color-text-secondary;
+
+    a {
+      color: $color-primary;
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        opacity: 0.82;
+      }
+    }
+  }
+
+  &__settings {
+    display: grid;
+    gap: rem(8);
+    padding: rem(10) 0 rem(2);
+    border-top: rem(1) solid rgba($color-text, 0.08);
+  }
+
+  &__option {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: rem(12);
+    align-items: center;
+    padding: rem(10) 0;
+  }
+
+  &__option-title {
+    display: block;
+    margin: 0;
+    font-size: rem(14);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  &__option-description {
+    display: block;
+    margin: rem(3) 0 0;
+    color: $color-text-secondary;
+    font-size: rem(13);
+    line-height: 1.45;
+  }
+
+  &__badge {
+    justify-self: end;
+    padding: rem(6) rem(9);
+    border-radius: rem(6);
+    background: $color-gray;
+    color: $color-text-secondary;
+    font-size: rem(11);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  &__switch-input {
+    position: absolute;
+    width: rem(1);
+    height: rem(1);
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__switch {
+    position: relative;
+    width: rem(44);
+    height: rem(26);
+    border-radius: rem(999);
+    background: $color-gray-dark;
+    transition: background 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: rem(3);
+      left: rem(3);
+      width: rem(20);
+      height: rem(20);
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 rem(2) rem(6) rgba($color-text, 0.18);
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &__switch-input:checked + &__switch {
+    background: $color-primary;
+  }
+
+  &__switch-input:checked + &__switch::after {
+    transform: translateX(rem(18));
+  }
+
+  &__switch-input:focus-visible + &__switch {
+    outline: rem(2) solid rgba($color-primary, 0.36);
+    outline-offset: rem(3);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: rem(8);
+
+    @media (min-width: $breakpoint-md) {
+      justify-content: flex-start;
+    }
+  }
+
+  &__button {
+    min-height: rem(40);
+    padding: rem(10) rem(13);
+    border: rem(1) solid transparent;
+    border-radius: rem(8);
+    background: $color-gradient;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: rem(14);
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:focus-visible {
+      outline: rem(2) solid rgba($color-primary, 0.36);
+      outline-offset: rem(2);
+    }
+
+    &:hover {
+      opacity: 0.92;
+      transform: translateY(rem(-1));
+      box-shadow: 0 rem(8) rem(18) rgba($color-primary, 0.24);
+    }
+
+    &--secondary {
+      border: rem(1) solid rgba($color-text, 0.12);
+      background: #ffffff;
+      color: $color-text;
+
+      &:hover {
+        box-shadow: 0 rem(8) rem(18) rgba($color-text, 0.1);
+      }
+    }
+
+    &--ghost {
+      background: transparent;
+      color: $color-text-secondary;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+}
