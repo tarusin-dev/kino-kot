@@ -27,11 +27,22 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+  children,
+  disableInitialFetch = false,
+}: {
+  children: React.ReactNode;
+  disableInitialFetch?: boolean;
+}) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!disableInitialFetch);
 
   useEffect(() => {
+    if (disableInitialFetch) {
+      setLoading(false);
+      return;
+    }
+
     fetch(`${API_URL}/auth/me`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -39,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [disableInitialFetch]);
 
   const login = async (email: string, password: string) => {
     const res = await fetch(`${API_URL}/auth/login`, {

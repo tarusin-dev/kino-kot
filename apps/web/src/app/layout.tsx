@@ -70,8 +70,19 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
   const websiteJsonLd = buildWebsiteJsonLd();
   const organizationJsonLd = buildOrganizationJsonLd();
+
+  if (isMaintenanceMode) {
+    return (
+      <html lang="ru" suppressHydrationWarning>
+        <body className={montserrat.className}>
+          <AuthProvider disableInitialFetch>{children}</AuthProvider>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="ru" suppressHydrationWarning>
